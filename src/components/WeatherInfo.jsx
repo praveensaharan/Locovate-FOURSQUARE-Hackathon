@@ -8,14 +8,26 @@ export default function WeatherInfo({ lat, lon }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (!lat || !lon) return;
-
     const fetchWeather = async () => {
       setLoading(true);
       try {
-        const url = `https://api.weatherapi.com/v1/current.json?q=${lat},${lon}&key=${API_KEY}`;
+        let query = "";
+
+        if (lat && lon) {
+          // Use coordinates if available
+          query = `${lat},${lon}`;
+        } else {
+          // Fallback: get public IP
+          const ipRes = await fetch("https://api.ipify.org/?format=json");
+          if (!ipRes.ok) throw new Error("Failed to fetch IP address");
+          const { ip } = await ipRes.json();
+          query = ip;
+        }
+
+        const url = `https://api.weatherapi.com/v1/current.json?q=${query}&key=${API_KEY}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Failed to fetch weather data");
+
         const data = await res.json();
         setWeather(data);
         setError("");
@@ -29,16 +41,16 @@ export default function WeatherInfo({ lat, lon }) {
     fetchWeather();
   }, [lat, lon]);
 
-  if (!lat || !lon) {
-    return <p className="text-gray-400 mt-4">Waiting for coordinates...</p>;
-  }
-
   if (loading) {
     return <p className="text-blue-400 mt-4">Loading weather data...</p>;
   }
 
   if (error) {
     return <p className="text-red-500 mt-4">Error: {error}</p>;
+  }
+
+  if (!weather) {
+    return <p className="text-gray-400 mt-4">No weather data available.</p>;
   }
 
   const {
