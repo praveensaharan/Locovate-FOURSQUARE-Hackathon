@@ -22,6 +22,8 @@
     "maplibre-gl": "^5.6.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "react-globe": "^2.0.1",
+    "react-globe.gl": "^2.35.0",
     "three": "^0.179.1",
     "three-globe": "^2.44.0"
   },
