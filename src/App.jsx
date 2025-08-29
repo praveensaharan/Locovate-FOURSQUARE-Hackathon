@@ -9,10 +9,10 @@ import Home from "./components/Home";
 export default function App() {
   return (
     <AppProvider>
-      {/* <Globe />   */}
-      {/* <Home /> */}
-      <IpInfo />
-      {/* <Starter2 /> */}
+      <Globe />  
+      <Home />
+      {/* <IpInfo /> */}
+      <Starter2 />
     </AppProvider>
   );
 }

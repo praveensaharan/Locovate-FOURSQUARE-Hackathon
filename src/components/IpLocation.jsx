@@ -3,11 +3,12 @@ import { useEffect, useState } from "react";
 function IpInfo() {
   const [ipData, setIpData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchIpData() {
       try {
-        const locRes = await fetch(`https://ipapi.co/json/`);
+        const locRes = await fetch("https://ipapi.co/json/");
         if (!locRes.ok) throw new Error("Failed to fetch location");
         const location = await locRes.json();
 
@@ -25,6 +26,7 @@ function IpInfo() {
         });
       } catch (err) {
         console.error("Error fetching IP/location:", err);
+        setError("Could not fetch IP information");
       } finally {
         setLoading(false);
       }
@@ -34,10 +36,11 @@ function IpInfo() {
   }, []);
 
   if (loading) return <p>Loading IP info...</p>;
-  if (!ipData) return <p>Could not load IP info.</p>;
+  if (error) return <p className="text-red-500">{error}</p>;
+  if (!ipData) return <p>No data available</p>;
 
   return (
-    <div className="p-4 border rounded-lg shadow-md text-white max-w-md">
+    <div className="p-4 border rounded-lg shadow-md bg-gray-800 text-white max-w-md">
       <h2 className="text-lg font-bold mb-2">🌍 My IP Information</h2>
       <ul className="space-y-1">
         <li><strong>IP:</strong> {ipData.ip}</li>
