@@ -12,7 +12,7 @@ function IpInfo() {
         const location = await locRes.json();
 
         setIpData({
-          ip,
+          ip: location.ip,
           location: {
             city: location.city,
             region: location.region,
