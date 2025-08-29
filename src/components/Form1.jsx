@@ -14,7 +14,6 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
     setError(null);
     setTranscript("");
 
-    // Check if browser supports
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -23,16 +22,14 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = "en-IN"; 
-    recognition.interimResults = true; 
-    recognition.continuous = true; 
+    recognition.lang = "en-IN";
+    recognition.interimResults = false;
+    recognition.continuous = false;
 
     recognition.onresult = (event) => {
-      let finalTranscript = "";
-      for (let i = 0; i < event.results.length; i++) {
-        finalTranscript += event.results[i][0].transcript;
-      }
+      const finalTranscript = event.results[0][0].transcript.trim();
       setTranscript(finalTranscript);
+      setRecording(false);
       if (onTranscript) onTranscript(finalTranscript);
     };
 
@@ -59,46 +56,56 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-6 p-6 border rounded-xl max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-4">Choose input method</h2>
+    <div className="flex flex-col items-center space-y-6 p-6 rounded-2xl max-w-md mx-auto bg-[#0B0B2B]/70 backdrop-blur-lg border border-[#4A4CFF]/20 shadow-[0_0_20px_rgba(74,76,255,0.2)]">
+      {/* Heading */}
+      <h2 className="text-3xl font-bold text-white drop-shadow-lg">
+        Tell me your mood
+      </h2>
+      <p className="text-sm text-[#B9B9FF] text-center">
+        Speak or pick a mood below to continue
+      </p>
 
-      {/* Audio Record Option */}
+      {/* Mic button */}
       <div className="flex items-center space-x-3 w-full justify-center">
         <button
           onClick={recording ? stopRecording : startRecording}
-          className={`p-4 rounded-full border transition-colors
-            ${recording ? "bg-red-500 text-white" : "bg-sky-100 text-sky-700"} 
-            hover:bg-red-600 hover:text-white`}
+          className={`p-5 rounded-full transition-all shadow-md border border-[#4A4CFF]/40 hover:shadow-[0_0_20px_rgba(74,76,255,0.6)]
+            ${
+              recording
+                ? "bg-gradient-to-r from-red-500 to-red-600 text-white"
+                : "bg-gradient-to-r from-[#4A4CFF] to-[#5865F2] text-white"
+            }`}
           aria-label={recording ? "Stop recording" : "Start recording"}
           title={recording ? "Stop recording" : "Record your voice"}
         >
-          <Mic size={32} />
+          <Mic size={28} />
         </button>
-        <span>{recording ? "Listening..." : "Tap mic to talk"}</span>
+        <span className="text-sm text-gray-300">
+          {recording ? "Listening..." : "Tap mic to talk"}
+        </span>
       </div>
 
       {/* Transcript box */}
       {transcript && (
-        <div className="w-full p-3 border rounded-lg text-sm">
-          {transcript}
+        <div className="w-full p-3 rounded-lg text-sm bg-[#0F0F35]/60 backdrop-blur border border-[#4A4CFF]/30 text-gray-200">
+          <span className="font-semibold text-[#B9B9FF]">You said:</span> {transcript}
         </div>
       )}
 
-      {/* Divider */}
-      <div className="my-4 border-t w-full" />
+      <div className="my-4 border-t border-[#4A4CFF]/20 w-full" />
 
-      {/* Mood Picker Option */}
+      {/* Mood buttons */}
       <div className="flex flex-col items-center space-y-3 w-full">
         <div className="flex items-center space-x-2">
-          <Smile size={28} className="text-sky-600" />
-          <h3 className="text-lg font-medium">Pick a mood</h3>
+          <Smile size={22} className="text-[#B9B9FF]" />
+          <h3 className="text-lg font-medium text-white">Or pick a mood</h3>
         </div>
         <div className="grid grid-cols-3 gap-3 w-full">
           {predefinedMoods.map((mood) => (
             <button
               key={mood}
               onClick={() => onMoodSelect && onMoodSelect(mood)}
-              className="py-2 px-3 border rounded-lg text-center hover:bg-sky-100 transition"
+              className="py-2 px-3 rounded-lg text-sm text-gray-200 bg-[#0B0B2B]/60 border border-[#4A4CFF]/30 hover:bg-[#4A4CFF]/20 hover:shadow-[0_0_10px_rgba(74,76,255,0.4)] transition-all"
               aria-label={`Select mood ${mood}`}
               title={`Select mood ${mood}`}
             >
@@ -108,8 +115,7 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
         </div>
       </div>
 
-      {/* Error display */}
-      {error && <p className="text-red-600 text-sm mt-3">{error}</p>}
+      {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
     </div>
   );
 }

@@ -3,19 +3,22 @@ import { motion } from "framer-motion";
 import { MapPin, Compass, Loader2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { fetchActivitiesFromAI, fetchPlacesNearby } from "../services/api";
+import AudioOrMoodChooser from "./Form1";
 
-// Step 0: Intro Screen
-function ActivityIntro({ loading, weatherLoading, onStart }) {
+// Step 1: Intro after mood chosen
+function ActivityIntro({ loading, weatherLoading, onStart, mood }) {
   return (
     <div className="flex flex-col items-center text-center space-y-4">
-      <h1 className="text-2xl font-bold text-gray-800">Find Fun Activities</h1>
-      <p className="text-gray-600">
-        Discover exciting activities around you based on mood, weather, and time.
+      <h1 className="text-3xl font-bold text-white drop-shadow-lg">
+        Find Fun Activities
+      </h1>
+      <p className="text-[#B9B9FF]">
+        Based on your mood (<span className="font-semibold text-[#4A4CFF]">{mood}</span>), weather, and time.
       </p>
       <button
         onClick={onStart}
-        className="flex items-center px-6 py-3 text-lg rounded-xl bg-sky-600 text-white hover:bg-sky-700 disabled:opacity-50 transition"
         disabled={loading || weatherLoading}
+        className="flex items-center px-6 py-3 text-lg rounded-xl bg-gradient-to-r from-[#4A4CFF] to-[#5865F2] text-white hover:shadow-[0_0_15px_rgba(74,76,255,0.6)] disabled:opacity-50 transition shadow-md"
       >
         {loading ? (
           <Loader2 className="animate-spin w-5 h-5" />
@@ -29,24 +32,24 @@ function ActivityIntro({ loading, weatherLoading, onStart }) {
   );
 }
 
-// Step 1: Activities List
+// Step 2: Activity choices
 function ActivityList({ activities, keywords, loading, onSelect }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
+      <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
         Choose an activity:
       </h2>
-      <div className="grid gap-3 text-black">
+      <div className="grid gap-3">
         {activities.map((act, i) => (
           <button
             key={i}
             onClick={() => onSelect(i)}
             disabled={loading}
-            className="text-left w-full px-4 py-3 border rounded-xl hover:bg-sky-50 transition disabled:opacity-50"
+            className="text-left w-full px-4 py-3 rounded-xl transition-all disabled:opacity-50 bg-[#0B0B2B]/70 backdrop-blur border border-[#4A4CFF]/30 text-gray-200 hover:bg-[#4A4CFF]/20 hover:shadow-[0_0_10px_rgba(74,76,255,0.5)]"
           >
             {act}
             {keywords?.[i] && (
-              <span className="ml-2 text-xs bg-sky-100 text-sky-700 rounded px-2 py-0.5">
+              <span className="ml-2 text-xs bg-[#4A4CFF]/30 text-[#B9B9FF] rounded px-2 py-0.5">
                 {keywords[i]}
               </span>
             )}
@@ -57,17 +60,17 @@ function ActivityList({ activities, keywords, loading, onSelect }) {
   );
 }
 
-// Step 2: Places List
+// Step 3: Nearby places list
 function PlacesList({ selected, places, loading }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold text-gray-800 mb-4">
-        You chose: <span className="text-sky-600">{selected}</span>
+      <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
+        You chose: <span className="text-[#4A4CFF]">{selected}</span>
       </h2>
-      <h3 className="text-lg font-medium text-gray-700 mb-3">Nearby options:</h3>
+      <h3 className="text-lg font-medium text-[#B9B9FF] mb-3">Nearby options:</h3>
       {loading ? (
         <div className="flex justify-center py-6">
-          <Loader2 className="animate-spin text-sky-600 w-6 h-6" />
+          <Loader2 className="animate-spin text-[#4A4CFF] w-6 h-6" />
         </div>
       ) : (
         <ul className="space-y-3">
@@ -75,19 +78,19 @@ function PlacesList({ selected, places, loading }) {
             places.map((place) => (
               <li
                 key={place.fsq_place_id}
-                className="p-3 border rounded-xl shadow-sm bg-sky-50 flex items-start space-x-3"
+                className="p-3 rounded-xl bg-[#0F0F35]/70 backdrop-blur border border-[#4A4CFF]/30 text-gray-200 flex items-start space-x-3 hover:shadow-[0_0_10px_rgba(74,76,255,0.4)]"
               >
-                <MapPin className="w-5 h-5 text-sky-600 mt-1" />
+                <MapPin className="w-5 h-5 text-[#4A4CFF] mt-1" />
                 <div>
-                  <p className="font-semibold text-gray-800">{place.name}</p>
-                  <p className="text-sm text-gray-600">
+                  <p className="font-semibold text-white">{place.name}</p>
+                  <p className="text-sm text-[#B9B9FF]">
                     {place.location?.address || "No address available"}
                   </p>
                 </div>
               </li>
             ))
           ) : (
-            <p className="text-gray-500">No places found.</p>
+            <p className="text-[#B9B9FF]">No places found.</p>
           )}
         </ul>
       )}
@@ -95,22 +98,37 @@ function PlacesList({ selected, places, loading }) {
   );
 }
 
-// Main Component
 export default function ActivityFinder() {
   const { weather, loading: weatherLoading, coords } = useAppContext();
 
   const [step, setStep] = useState(0);
+  const [mood, setMood] = useState("");
   const [activities, setActivities] = useState([]);
   const [keywords, setKeywords] = useState([]);
   const [selected, setSelected] = useState(null);
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch activity suggestions from AI
-  const handleFetchActivities = async () => {
-    if (!weather) return;
-    setLoading(true);
+  // Reset flow
+  const handleReset = () => {
+    setStep(0);
+    setMood("");
+    setActivities([]);
+    setKeywords([]);
+    setSelected(null);
+    setPlaces([]);
+    setLoading(false);
+  };
 
+  // Step transitions
+  const handleMoodChosen = (chosenMood) => {
+    setMood(chosenMood);
+    setStep(1);
+  };
+
+  const handleFetchActivities = async () => {
+    if (!weather || !mood) return;
+    setLoading(true);
     try {
       const {
         location: { name: city },
@@ -120,7 +138,7 @@ export default function ActivityFinder() {
       const time = new Date().toLocaleTimeString();
 
       const result = await fetchActivitiesFromAI({
-        mood: "Good",
+        mood,
         weather: weatherCondition,
         city,
         date,
@@ -129,7 +147,7 @@ export default function ActivityFinder() {
 
       setActivities(result.activities || []);
       setKeywords(result.keywords || []);
-      setStep(1);
+      setStep(2);
     } catch (err) {
       console.error("Error fetching activities:", err);
     } finally {
@@ -137,7 +155,6 @@ export default function ActivityFinder() {
     }
   };
 
-  // Fetch nearby places for selected activity
   const handleFetchPlaces = async (activityIdx) => {
     const activity = activities?.[activityIdx];
     const keyword = keywords?.[activityIdx];
@@ -146,7 +163,7 @@ export default function ActivityFinder() {
     try {
       const result = await fetchPlacesNearby(keyword, coords.lat, coords.lon);
       setPlaces(result || []);
-      setStep(2);
+      setStep(3);
     } catch (err) {
       console.error("Error fetching places:", err);
     } finally {
@@ -155,24 +172,29 @@ export default function ActivityFinder() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 to-sky-100 p-6 flex flex-col items-center">
-      {/* Smooth transition in and out */}
+    <div className="min-h-screen bg-gradient-to-b from-[#0B0B2B] via-[#0F0F35] to-[#0B0B2B] p-6 flex flex-col items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.5, ease: "easeInOut" }}
         className="w-full max-w-xl"
       >
-        <div className="shadow-lg rounded-2xl border-0 bg-white p-6 space-y-6">
+        <div className="rounded-2xl bg-[#0B0B2B]/70 backdrop-blur-lg p-6 space-y-6 border border-[#4A4CFF]/20 shadow-[0_0_20px_rgba(74,76,255,0.2)]">
           {step === 0 && (
+            <AudioOrMoodChooser
+              onTranscript={(txt) => handleMoodChosen(txt)}
+              onMoodSelect={(m) => handleMoodChosen(m)}
+            />
+          )}
+          {step === 1 && (
             <ActivityIntro
               loading={loading}
               weatherLoading={weatherLoading}
               onStart={handleFetchActivities}
+              mood={mood}
             />
           )}
-          {step === 1 && (
+          {step === 2 && (
             <ActivityList
               activities={activities}
               keywords={keywords}
@@ -180,8 +202,19 @@ export default function ActivityFinder() {
               onSelect={handleFetchPlaces}
             />
           )}
-          {step === 2 && (
+          {step === 3 && (
             <PlacesList selected={selected} places={places} loading={loading} />
+          )}
+
+          {step > 0 && (
+            <div className="pt-4 flex justify-center">
+              <button
+                onClick={handleReset}
+                className="px-4 py-2 rounded-lg border border-[#4A4CFF]/40 text-gray-200 hover:bg-[#4A4CFF]/20 hover:shadow-[0_0_10px_rgba(74,76,255,0.5)] transition"
+              >
+                Reset & Start Over
+              </button>
+            </div>
           )}
         </div>
       </motion.div>
