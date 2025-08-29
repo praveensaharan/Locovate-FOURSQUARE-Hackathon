@@ -1,43 +1,56 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
-const IPGeoLocation = () => {
-  const [locationData, setLocationData] = useState(null);
-  const [error, setError] = useState(null);
+function IpInfo() {
+  const [ipData, setIpData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch geolocation data from ip-api
-    fetch("http://ip-api.com/json/")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "success") {
-          setLocationData(data);
-        } else {
-          setError("Failed to fetch location data");
-        }
-      })
-      .catch((err) => {
-        setError(err.message || "Unknown error");
-      });
+    async function fetchIpData() {
+      try {
+        const locRes = await fetch(`https://ipapi.co/json/`);
+        if (!locRes.ok) throw new Error("Failed to fetch location");
+        const location = await locRes.json();
+
+        setIpData({
+          ip,
+          location: {
+            city: location.city,
+            region: location.region,
+            country: location.country_name,
+            latitude: location.latitude,
+            longitude: location.longitude,
+            timezone: location.timezone,
+            org: location.org,
+          },
+        });
+      } catch (err) {
+        console.error("Error fetching IP/location:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchIpData();
   }, []);
 
-  return (
-    <div style={{ padding: "20px", fontFamily: "Arial" }}>
-      <h2>Your IP Geolocation Info</h2>
-      {error && <p style={{ color: "red" }}>Error: {error}</p>}
+  if (loading) return <p>Loading IP info...</p>;
+  if (!ipData) return <p>Could not load IP info.</p>;
 
-      {locationData ? (
-        <ul>
-          {Object.entries(locationData).map(([key, value]) => (
-            <li key={key}>
-              <strong>{key}:</strong> {value.toString()}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        !error && <p>Loading...</p>
-      )}
+  return (
+    <div className="p-4 border rounded-lg shadow-md text-white max-w-md">
+      <h2 className="text-lg font-bold mb-2">🌍 My IP Information</h2>
+      <ul className="space-y-1">
+        <li><strong>IP:</strong> {ipData.ip}</li>
+        <li><strong>City:</strong> {ipData.location.city}</li>
+        <li><strong>Region:</strong> {ipData.location.region}</li>
+        <li><strong>Country:</strong> {ipData.location.country}</li>
+        <li><strong>Latitude:</strong> {ipData.location.latitude}</li>
+        <li><strong>Longitude:</strong> {ipData.location.longitude}</li>
+        <li><strong>Timezone:</strong> {ipData.location.timezone}</li>
+        <li><strong>ISP/Org:</strong> {ipData.location.org}</li>
+      </ul>
     </div>
   );
-};
+}
 
-export default IPGeoLocation;
+export default IpInfo;
