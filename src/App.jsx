@@ -1,4 +1,3 @@
-
 import WeatherInfo from "./components/WeatherInfo";
 import Starter2 from "./components/Form2";
 import Starter from "./components/Form1";
