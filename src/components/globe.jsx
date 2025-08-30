@@ -1,7 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
 import Globe from "react-globe.gl";
+import { useAppContext } from "../context/AppContext";
 
 function MyGlobeComponent() {
+  const { coords } = useAppContext();
   const globeEl = useRef();
   const [location, setLocation] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -16,10 +18,8 @@ function MyGlobeComponent() {
     link.href = "https://fonts.googleapis.com/css2?family=Doto:wght@900&display=swap";
     link.rel = "stylesheet";
     document.head.appendChild(link);
-
-    // Detect screen size and track window size
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 640); // Tailwind's sm breakpoint
+      setIsMobile(window.innerWidth < 640); 
       setDimensions({
         width: window.innerWidth,
         height: window.innerHeight,
@@ -27,24 +27,17 @@ function MyGlobeComponent() {
     };
     handleResize();
     window.addEventListener("resize", handleResize);
-
-    // Get user's current position
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setLocation({ lat: latitude, lng: longitude });
-      },
-      (err) => {
-        console.error("Geolocation error:", err);
-        // fallback to San Francisco
-        setLocation({ lat: 37.7749, lng: -122.4194 });
-      }
-    );
-
     return () => {
       window.removeEventListener("resize", handleResize);
     };
   }, []);
+
+useEffect(() => {
+  if (coords.lat && coords.lon) {
+    setLocation({ lat: coords.lat, lng: coords.lon });
+  }
+}, [coords]);
+
 
   useEffect(() => {
     if (globeEl.current && location) {
