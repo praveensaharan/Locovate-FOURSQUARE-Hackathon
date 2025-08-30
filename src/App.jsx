@@ -5,14 +5,17 @@ import Globe from "./components/globe";
 import { AppProvider } from "./context/AppContext";
 import IpInfo from "./components/IpLocation";
 import Home from "./components/Home";
+import Footer from "./components/Footer";
+import FloatingMoods from "./components/FloatingMood";
 
 export default function App() {
   return (
     <AppProvider>
+
       <Globe />  
       <Home />
-      {/* <IpInfo /> */}
       <Starter2 />
+      <Footer />
     </AppProvider>
   );
 }

@@ -69,6 +69,10 @@ useEffect(() => {
         overflow: "hidden", // ensures no scrollbars
       }}
     >
+      <div className="absolute top-4 left-4 z-30 pointer-events-auto opacity-70">
+        <img src="/PNG-favicon.png" alt="Logo" className="w-16 h-16 object-contain" />
+      </div>
+
       {location && (
         <Globe
           ref={globeEl}

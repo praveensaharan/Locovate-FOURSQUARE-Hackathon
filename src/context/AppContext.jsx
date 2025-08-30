@@ -9,7 +9,7 @@ export function AppProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Get location (geolocation or fallback to IP)
+  // Get location (geolocation or fallback to IP after 5s)
   useEffect(() => {
     let canceled = false;
     let timeoutId;
@@ -31,9 +31,12 @@ export function AppProvider({ children }) {
     }
 
     if ("geolocation" in navigator) {
+      setLoading(true);
       timeoutId = setTimeout(() => {
-        if (!canceled) fallbackToIP();
-      }, 1000); 
+        if (!canceled) {
+          fallbackToIP();
+        }
+      }, 1000);
 
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -62,7 +65,7 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  // Fetch weather when coords change
+  // Fetch weather when coords are ready
   useEffect(() => {
     if (coords.lat == null || coords.lon == null) return;
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Mic, Smile } from "lucide-react";
+import MoodPicker from "./FloatingMood";
 
-const predefinedMoods = ["Happy", "Relaxed", "Energetic", "Calm", "Focused"];
 
 export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
   const [recording, setRecording] = useState(false);
@@ -43,7 +43,6 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
       return;
     }
 
-    // Optional: you may gate microphone recording if location is mandatory
     if (!locationEnabled) {
       setError("Location access is required to use this feature.");
       return;
@@ -84,7 +83,7 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
   };
 
   return (
-    <div className="flex flex-col items-center space-y-6 p-6 rounded-2xl max-w-md mx-auto ">
+    <div className="flex flex-col items-center space-y-6 p-6 rounded-2xl ">
       {/* Heading */}
       <h2 className="text-3xl font-bold text-white drop-shadow-lg">
         Tell Us your mood
@@ -131,21 +130,8 @@ export default function AudioOrMoodChooser({ onTranscript, onMoodSelect }) {
           <Smile size={22} className="text-[#B9B9FF]" />
           <h3 className="text-lg font-medium text-white">Or pick a mood</h3>
         </div>
-        <div className="grid grid-cols-3 gap-3 w-full">
-          {predefinedMoods.map((mood) => (
-            <button
-              key={mood}
-              onClick={() => onMoodSelect && onMoodSelect(mood)}
-              className="py-2 px-3 rounded-lg text-sm text-gray-200 bg-[#0B0B2B]/60 border border-[#4A4CFF]/30 hover:bg-[#4A4CFF]/20 hover:shadow-[0_0_10px_rgba(74,76,255,0.4)] transition-all"
-              aria-label={`Select mood ${mood}`}
-              title={`Select mood ${mood}`}
-            >
-              {mood}
-            </button>
-          ))}
-        </div>
       </div>
-
+         <MoodPicker onMoodSelect={onMoodSelect} />
       {error && <p className="text-red-400 text-sm mt-3">{error}</p>}
     </div>
   );
