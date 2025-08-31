@@ -1,6 +1,6 @@
 
-
 const URL = "https://locovate-backend.vercel.app/api"
+// const URL = "http://localhost:3001/api"
 export async function fetchActivitiesFromAI({ mood, weather, city, date, time }) {
   const res = await fetch(`${URL}/ai-activities`, {
     method: "POST",
@@ -23,7 +23,7 @@ export async function fetchPlacesNearby(activity, lat, lon) {
   const res = await fetch(
     `${URL}/places?query=${encodeURIComponent(activity)}&ll=${lat},${lon}`
   );
-console.log("Places API response:", res);
+
   if (!res.ok) {
     throw new Error(`Places API failed: ${res.status} ${res.statusText}`);
   }

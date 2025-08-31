@@ -65,7 +65,6 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  // Fetch weather when coords are ready
   useEffect(() => {
     if (coords.lat == null || coords.lon == null) return;
 

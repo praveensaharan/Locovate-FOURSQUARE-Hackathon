@@ -4,6 +4,7 @@ import { MapPin, Compass, Loader2 } from "lucide-react";
 import { useAppContext } from "../context/AppContext";
 import { fetchActivitiesFromAI, fetchPlacesNearby } from "../services/api";
 import AudioOrMoodChooser from "./Form1";
+import MapComponent from "./maps2";
 
 // Step 1: Intro after mood chosen
 function ActivityIntro({ loading, weatherLoading, onStart, mood }) {
@@ -13,7 +14,7 @@ function ActivityIntro({ loading, weatherLoading, onStart, mood }) {
         Find Fun Activities
       </h1>
       <p className="text-[#B9B9FF]">
-        Based on your mood (<span className="font-semibold text-[#4A4CFF]">{mood}</span>), weather, and time.
+        Based on your mood (<span className="font-semibold text-[#4A4CFF]">{mood}</span>), weather, time, and location.
       </p>
       <button
         onClick={onStart}
@@ -33,12 +34,23 @@ function ActivityIntro({ loading, weatherLoading, onStart, mood }) {
 }
 
 // Step 2: Activity choices
-function ActivityList({ activities, keywords, loading, onSelect }) {
+function ActivityList({ activities, keywords, loading, onSelect, reasoning }) {
   return (
     <div>
       <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
         Choose an activity:
       </h2>
+      {/* <p className="text-2xl font-semibold text-white mb-4 drop-shadow-md">{reasoning}</p> */}
+     {reasoning && (
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+          className="mb-6 p-4 rounded-xl bg-[#0F0F35]/70 border border-[#4A4CFF]/30 text-[#B9B9FF] italic text-sm shadow-[0_0_12px_rgba(74,76,255,0.25)]"
+        >
+          {reasoning}
+        </motion.p>
+      )}
       <div className="grid gap-3">
         {activities.map((act, i) => (
           <button
@@ -65,7 +77,7 @@ function PlacesList({ selected, places, loading }) {
   return (
     <div>
       <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
-        You chose: <span className="text-[#4A4CFF]">{selected}</span>
+        You choose: <span className="text-[#4A4CFF]">{selected}</span>
       </h2>
       <h3 className="text-lg font-medium text-[#B9B9FF] mb-3">Nearby options:</h3>
       {loading ? (
@@ -84,14 +96,18 @@ function PlacesList({ selected, places, loading }) {
                 <div>
                   <p className="font-semibold text-white">{place.name}</p>
                   <p className="text-sm text-[#B9B9FF]">
-                    {place.location?.address || "No address available"}
+                    {place.location?.formatted_address || "No address available"}
                   </p>
+                  <p className="text-xs text-gray-500">{(place.distance / 1000).toFixed(2)} km</p>
+                  <p className="text-xs text-gray-500">{place.website}</p>
+                  <p className="text-xs text-gray-500">{place.categories?.map((c) => c.short_name).join(", ")}</p>
                 </div>
               </li>
             ))
           ) : (
             <p className="text-[#B9B9FF]">No places found.</p>
           )}
+           <MapComponent places={places} />
         </ul>
       )}
     </div>
@@ -108,6 +124,7 @@ export default function ActivityFinder() {
   const [selected, setSelected] = useState(null);
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reasoning, setReasoning] = useState("");
 
   // Reset flow
   const handleReset = () => {
@@ -118,6 +135,7 @@ export default function ActivityFinder() {
     setSelected(null);
     setPlaces([]);
     setLoading(false);
+    setReasoning("");
   };
 
   // Step transitions
@@ -147,6 +165,7 @@ export default function ActivityFinder() {
 
       setActivities(result.activities || []);
       setKeywords(result.keywords || []);
+      setReasoning(result.reasoning || "");
       setStep(2);
     } catch (err) {
       console.error("Error fetching activities:", err);
@@ -196,6 +215,7 @@ export default function ActivityFinder() {
           )}
           {step === 2 && (
             <ActivityList
+              reasoning={reasoning}
               activities={activities}
               keywords={keywords}
               loading={loading}

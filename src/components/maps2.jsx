@@ -1,202 +1,415 @@
-// MapWithWalkingDirections.jsx
-import React, { useState, useEffect } from "react";
-import GoogleMapReact from "google-map-react";
+// import React, { useState, useEffect, useRef } from "react";
+
+
+// import rawPlaces from "../filejsons/helo.json";
+
+// const places = rawPlaces.map((p) => ({
+//   name: p.name,
+//   latitude: p.latitude,
+//   longitude: p.longitude,
+//   formatted_address:
+//     p.location?.formatted_address ||
+//     `${p.location?.locality || ""}, ${p.location?.region || ""}, ${p.location?.country || ""}`,
+//   tel: p.tel || null,
+//   website: p.website || null,
+//   distance: p.distance || null,
+//   categories: p.categories?.map((c) => c.short_name).join(", "),
+// }));
+
+// const API_KEY = import.meta.env.VITE_MAPS_KEY;
+
+// export default function MapDirections() {
+//   const [mapLoaded, setMapLoaded] = useState(false);
+//   const [currentPosition, setCurrentPosition] = useState(null);
+//   const [selectedPlace, setSelectedPlace] = useState(null);
+//   const [map, setMap] = useState(null);
+//   const [directionsRenderer, setDirectionsRenderer] = useState(null);
+//   const [travelTime, setTravelTime] = useState(null);
+//   const [walkingInfo, setWalkingInfo] = useState({});
+//   const markersRef = useRef([]);
+
+//   // Load Google Maps API
+//   useEffect(() => {
+//     if (!window.google && !document.querySelector(`script[src*="maps.googleapis.com"]`)) {
+//       const script = document.createElement("script");
+//       script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+//       script.async = true;
+//       script.onload = () => setMapLoaded(true);
+//       document.body.appendChild(script);
+//     } else {
+//       setMapLoaded(true);
+//     }
+//   }, []);
+
+//   // Get user location
+//   useEffect(() => {
+//     if (navigator.geolocation) {
+//       navigator.geolocation.getCurrentPosition(
+//         (pos) => setCurrentPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+//         () => alert("Unable to retrieve your location")
+//       );
+//     } else {
+//       alert("Geolocation is not supported by your browser.");
+//     }
+//   }, []);
+
+//   // Initialize map and markers
+//   useEffect(() => {
+//     if (mapLoaded && currentPosition && !map && window.google?.maps) {
+//       const gMap = new window.google.maps.Map(document.getElementById("map"), {
+//         center: currentPosition,
+//         zoom: 14,
+//       });
+//       setMap(gMap);
+
+//       const renderer = new window.google.maps.DirectionsRenderer();
+//       renderer.setMap(gMap);
+//       setDirectionsRenderer(renderer);
+
+//       // User marker
+//       new window.google.maps.Marker({
+//         map: gMap,
+//         position: currentPosition,
+//         title: "You are here",
+//         icon: {
+//           path: window.google.maps.SymbolPath.CIRCLE,
+//           scale: 10,
+//           fillColor: "#3b82f6",
+//           fillOpacity: 1,
+//           strokeWeight: 2,
+//           strokeColor: "#fff",
+//         },
+//       });
+
+//       // Place markers
+//       markersRef.current = [];
+//       places.forEach((place) => {
+//         const marker = new window.google.maps.Marker({
+//           map: gMap,
+//           position: { lat: place.latitude, lng: place.longitude },
+//           title: place.name,
+//         });
+//         marker.addListener("click", () => setSelectedPlace(place));
+//         markersRef.current.push(marker);
+//       });
+//     }
+//   }, [mapLoaded, currentPosition]);
+
+//   // Show driving directions when selecting a place
+//   useEffect(() => {
+//     if (selectedPlace && directionsRenderer && currentPosition) {
+//       const directionsService = new window.google.maps.DirectionsService();
+//       directionsService.route(
+//         {
+//           origin: currentPosition,
+//           destination: { lat: selectedPlace.latitude, lng: selectedPlace.longitude },
+//           travelMode: window.google.maps.TravelMode.DRIVING,
+//         },
+//         (result, status) => {
+//           if (status === "OK") {
+//             directionsRenderer.setDirections(result);
+//             const leg = result.routes[0].legs[0];
+//             setTravelTime(`${leg.duration.text} (${leg.distance.text})`);
+//           }
+//         }
+//       );
+//     }
+//   }, [selectedPlace, directionsRenderer, currentPosition]);
+
+//   // Preload walking info
+//   useEffect(() => {
+//     if (currentPosition && map && window.google?.maps) {
+//       const directionsService = new window.google.maps.DirectionsService();
+//       places.forEach((place) => {
+//         directionsService.route(
+//           {
+//             origin: currentPosition,
+//             destination: { lat: place.latitude, lng: place.longitude },
+//             travelMode: window.google.maps.TravelMode.WALKING,
+//           },
+//           (result, status) => {
+//             if (status === "OK") {
+//               const leg = result.routes[0].legs[0];
+//               setWalkingInfo((prev) => ({
+//                 ...prev,
+//                 [place.name]: { duration: leg.duration.text, distance: leg.distance.text },
+//               }));
+//             }
+//           }
+//         );
+//       });
+//     }
+//   }, [currentPosition, map]);
+
+//   return (
+//     <div className="flex h-screen">
+//       {/* Sidebar */}
+//       <aside className="w-80 p-4 border-r border-gray-300 overflow-auto bg-gray-50">
+//         <h2 className="text-lg font-bold mb-4">Nearby Cafés</h2>
+//         {places.map((place) => (
+//           <div
+//             key={place.name}
+//             className={`group relative mb-4 p-3 rounded-lg cursor-pointer shadow-sm ring-1 transition-colors ${
+//               selectedPlace?.name === place.name
+//                 ? "ring-blue-600 bg-blue-100"
+//                 : "ring-gray-300 bg-white hover:bg-blue-50"
+//             }`}
+//             onClick={() => setSelectedPlace(place)}
+//           >
+//             <h4 className="text-gray-900 font-medium">{place.name}</h4>
+//             <p className="text-gray-600 text-sm">{place.formatted_address}</p>
+//             {place.categories && (
+//               <p className="text-xs text-gray-500">{place.categories}</p>
+//             )}
+//             {place.distance && (
+//               <p className="text-xs text-gray-500">{(place.distance / 1000).toFixed(2)} km</p>
+//             )}
+
+//               {place.website && (
+//               <p className="text-xs text-gray-500">{place.website}</p>
+//             )}
+          
+
+//             {selectedPlace?.name === place.name && travelTime && (
+//               <p className="mt-1 font-semibold text-green-600">
+//                 🚗 {travelTime}
+//               </p>
+//             )}
+//             <div className="pointer-events-none absolute left-full top-1/2 z-20 ml-3 w-52 -translate-y-1/2 rounded border border-gray-300 bg-white p-3 shadow-lg opacity-0 transition-opacity group-hover:opacity-100">
+//               {walkingInfo[place.name] ? (
+//                 <p className="text-green-700 text-sm">
+//                   🚶 {walkingInfo[place.name].duration} ({walkingInfo[place.name].distance})
+//                 </p>
+//               ) : (
+//                 <p className="text-gray-500 text-sm italic">Loading walk info…</p>
+//               )}
+//               {place.tel && <p className="mt-1 text-xs">📞 {place.tel}</p>}
+//               {place.website && (
+//                 <a
+//                   href={place.website}
+//                   target="_blank"
+//                   rel="noreferrer"
+//                   className="text-xs text-blue-600 underline"
+//                 >
+//                   Website
+//                 </a>
+//               )}
+//             </div>
+//           </div>
+//         ))}
+//       </aside>
+
+//       {/* Map */}
+//       <main id="map" className="flex-1" />
+//     </div>
+//   );
+// }
+
+
+// import React, { useState, useEffect, useRef } from "react";
+// import { useAppContext } from "../context/AppContext";
+
+// const API_KEY = import.meta.env.VITE_MAPS_KEY;
+
+// export default function MapComponent({ places, selectedPlace = null }) {
+//   const { weather, loading, coords } = useAppContext();
+//   const [mapLoaded, setMapLoaded] = useState(false);
+//   const [currentPosition, setCurrentPosition] = useState(null);
+//   const [map, setMap] = useState(null);
+//   const [directionsRenderer, setDirectionsRenderer] = useState(null);
+//   const markersRef = useRef([]);
+
+//   // Load Google Maps API
+//   useEffect(() => {
+//     if (!window.google && !document.querySelector(`script[src*="maps.googleapis.com"]`)) {
+//       const script = document.createElement("script");
+//       script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+//       script.async = true;
+//       script.onload = () => setMapLoaded(true);
+//       document.body.appendChild(script);
+//     } else {
+//       setMapLoaded(true);
+//     }
+//   }, []);
+
+//   // Get user location
+//   useEffect(() => {
+//     if (navigator.geolocation) {
+//       navigator.geolocation.getCurrentPosition(
+//         (pos) => setCurrentPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+//         () => alert("Unable to retrieve your location")
+//       );
+//     } else {
+//       alert("Geolocation is not supported by your browser.");
+//     }
+//   }, []);
+
+//   // Initialize map and markers
+//   useEffect(() => {
+//     if (mapLoaded && currentPosition && !map && window.google?.maps) {
+//       const gMap = new window.google.maps.Map(document.getElementById("map"), {
+//         center: currentPosition,
+//         zoom: 14,
+//       });
+//       setMap(gMap);
+
+//       const renderer = new window.google.maps.DirectionsRenderer();
+//       renderer.setMap(gMap);
+//       setDirectionsRenderer(renderer);
+
+//       // User marker
+//       new window.google.maps.Marker({
+//         map: gMap,
+//         position: currentPosition,
+//         title: "You are here",
+//         icon: {
+//           path: window.google.maps.SymbolPath.CIRCLE,
+//           scale: 10,
+//           fillColor: "#3b82f6",
+//           fillOpacity: 1,
+//           strokeWeight: 2,
+//           strokeColor: "#fff",
+//         },
+//       });
+
+//       // Place markers
+//       markersRef.current = [];
+//       places.forEach((place) => {
+//         const marker = new window.google.maps.Marker({
+//           map: gMap,
+//           position: { lat: place.latitude, lng: place.longitude },
+//           title: place.name,
+//         });
+//         markersRef.current.push(marker);
+//       });
+//     }
+//   }, [mapLoaded, currentPosition]);
+
+//   // Show route if selectedPlace is passed
+//   useEffect(() => {
+//     if (selectedPlace && directionsRenderer && currentPosition) {
+//       const directionsService = new window.google.maps.DirectionsService();
+//       directionsService.route(
+//         {
+//           origin: currentPosition,
+//           destination: { lat: selectedPlace.latitude, lng: selectedPlace.longitude },
+//           travelMode: window.google.maps.TravelMode.DRIVING,
+//         },
+//         (result, status) => {
+//           if (status === "OK") {
+//             directionsRenderer.setDirections(result);
+//           }
+//         }
+//       );
+//     } else if (directionsRenderer) {
+//       // Clear previous route if no selectedPlace
+//       directionsRenderer.setDirections({ routes: [] });
+//     }
+//   }, [selectedPlace, directionsRenderer, currentPosition]);
+
+//   return <div id="map" className="w-full h-screen" />;
+// }
+
+
+
+import React, { useState, useEffect, useRef } from "react";
+import { useAppContext } from "../context/AppContext";
 
 const API_KEY = import.meta.env.VITE_MAPS_KEY;
 
-// Simple marker component
-const Marker = ({ text }) => (
-  <div
-    style={{
-      color: "white",
-      background: "red",
-      padding: "5px 10px",
-      borderRadius: "50%",
-      textAlign: "center",
-    }}
-  >
-    {text}
-  </div>
-);
+export default function MapComponent({ places, selectedPlace = null }) {
+  const { coords } = useAppContext();
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const [map, setMap] = useState(null);
+  const [directionsRenderer, setDirectionsRenderer] = useState(null);
+  const markersRef = useRef([]);
 
-// List of places
-const places = [
-  {
-    name: "Cafe Restaurant NAKAICHI",
-    latitude: 35.6902716242296,
-    longitude: 139.83905375003815,
-    formatted_address: "大島7-1-12, 江東区, 東京都, 136-0072",
-  },
-  {
-    name: "kn.cafe",
-    latitude: 35.689533675893315,
-    longitude: 139.83038453842227,
-    formatted_address: "江東区, 東京都, JP",
-  },
-  {
-    name: "Red Wood Cafe (レッドウッドカフェ)",
-    latitude: 35.688863511644016,
-    longitude: 139.81656468970513,
-    formatted_address: "住吉2-27-10, 江東区, 東京都, 135-0002",
-  },
-];
-
-const MapWithWalkingDirections = () => {
-  const [currentLocation, setCurrentLocation] = useState({
-    lat: 35.6895,
-    lng: 139.6917,
-  });
-  const [selectedPlace, setSelectedPlace] = useState(null);
-  const [route, setRoute] = useState(null);
-  const [duration, setDuration] = useState(null);
-
-  // Get user location
+  // Load Google Maps API script
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        (err) => console.error("Error getting location:", err)
-      );
+    if (!window.google && !document.querySelector(`script[src*="maps.googleapis.com"]`)) {
+      const script = document.createElement("script");
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${API_KEY}&libraries=places`;
+      script.async = true;
+      script.onload = () => setMapLoaded(true);
+      document.body.appendChild(script);
+    } else {
+      setMapLoaded(true);
     }
   }, []);
 
-  // Fetch walking directions from Google Maps Directions API
   useEffect(() => {
-    if (selectedPlace) {
-      const directionsUrl = `https://maps.googleapis.com/maps/api/directions/json?origin=${currentLocation.lat},${currentLocation.lng}&destination=${selectedPlace.latitude},${selectedPlace.longitude}&mode=walking&key=${API_KEY}`;
+    if (mapLoaded && coords.lat != null && coords.lon != null && !map && window.google?.maps) {
+      const center = { lat: coords.lat, lng: coords.lon };
 
-      // Use fetch with CORS proxy because Google Directions API doesn't allow direct client-side requests
-      fetch(
-        `https://api.allorigins.win/get?url=${encodeURIComponent(
-          directionsUrl
-        )}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          const json = JSON.parse(data.contents);
-          if (json.routes.length > 0) {
-            const points = json.routes[0].overview_polyline.points;
-            const path = decodePolyline(points);
-            setRoute(path);
-            setDuration(json.routes[0].legs[0].duration.text);
+      const gMap = new window.google.maps.Map(document.getElementById("map"), {
+        center,
+        zoom: 14,
+      });
+      setMap(gMap);
+
+      const renderer = new window.google.maps.DirectionsRenderer();
+      renderer.setMap(gMap);
+      setDirectionsRenderer(renderer);
+
+      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current = [];
+
+      new window.google.maps.Marker({
+        map: gMap,
+        position: center,
+        title: "You are here",
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: 10,
+          fillColor: "#3b82f6",
+          fillOpacity: 1,
+          strokeWeight: 2,
+          strokeColor: "#fff",
+        },
+      });
+
+      places.forEach((place) => {
+        if (place.latitude && place.longitude) {
+          const marker = new window.google.maps.Marker({
+            map: gMap,
+            position: { lat: place.latitude, lng: place.longitude },
+            title: place.name,
+          });
+          markersRef.current.push(marker);
+        }
+      });
+    }
+  }, [mapLoaded, coords, map, places]);
+
+  useEffect(() => {
+    if (
+      selectedPlace &&
+      directionsRenderer &&
+      coords.lat != null &&
+      coords.lon != null &&
+      selectedPlace.latitude != null &&
+      selectedPlace.longitude != null
+    ) {
+      const directionsService = new window.google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: { lat: coords.lat, lng: coords.lon },
+          destination: { lat: selectedPlace.latitude, lng: selectedPlace.longitude },
+          travelMode: window.google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === "OK") {
+            directionsRenderer.setDirections(result);
           }
-        });
+        }
+      );
+    } else if (directionsRenderer) {
+      // Clear previous route if no selectedPlace
+      directionsRenderer.setDirections({ routes: [] });
     }
-  }, [selectedPlace, currentLocation]);
+  }, [selectedPlace, directionsRenderer, coords]);
 
-  // Decode polyline function
-  const decodePolyline = (t, e) => {
-    let points = [];
-    let index = 0,
-      lat = 0,
-      lng = 0;
+  return <div id="map" className="w-full h-screen" />;
+}
 
-    while (index < t.length) {
-      let b,
-        shift = 0,
-        result = 0;
-      do {
-        b = t.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      const dlat = result & 1 ? ~(result >> 1) : result >> 1;
-      lat += dlat;
 
-      shift = 0;
-      result = 0;
-      do {
-        b = t.charCodeAt(index++) - 63;
-        result |= (b & 0x1f) << shift;
-        shift += 5;
-      } while (b >= 0x20);
-      const dlng = result & 1 ? ~(result >> 1) : result >> 1;
-      lng += dlng;
-
-      points.push({ lat: lat / 1e5, lng: lng / 1e5 });
-    }
-    return points;
-  };
-
-  return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      {/* Sidebar */}
-      <div
-        style={{
-          width: "300px",
-          padding: "10px",
-          overflowY: "auto",
-          borderRight: "1px solid #ccc",
-        }}
-      >
-        <h2>Places</h2>
-        {places.map((place, idx) => (
-          <div
-            className="bg-black text-white"
-            key={idx}
-            style={{
-              marginBottom: "10px",
-              padding: "10px",
-              border: "1px solid #ddd",
-              borderRadius: "5px",
-              cursor: "pointer",
-              backgroundColor:
-                selectedPlace?.name === place.name ? "#f0f0f0" : "white",
-            }}
-            onClick={() => setSelectedPlace(place)}
-          >
-            <strong>{place.name}</strong>
-            <br />
-            <small>{place.formatted_address}</small>
-          </div>
-        ))}
-        {duration && <p>Estimated walking time: {duration}</p>}
-      </div>
-
-      {/* Map */}
-      <div style={{ flex: 1 }}>
-        <GoogleMapReact
-          bootstrapURLKeys={{ key: API_KEY }}
-          center={currentLocation}
-          zoom={14}
-          yesIWantToUseGoogleMapApiInternals
-        >
-          <Marker
-            lat={currentLocation.lat}
-            lng={currentLocation.lng}
-            text="You"
-          />
-          {places.map((place, idx) => (
-            <Marker
-              key={idx}
-              lat={place.latitude}
-              lng={place.longitude}
-              text="📍"
-            />
-          ))}
-          {route &&
-            route.map((point, idx) => (
-              <div
-                key={idx}
-                lat={point.lat}
-                lng={point.lng}
-                style={{
-                  width: "5px",
-                  height: "5px",
-                  backgroundColor: "blue",
-                  borderRadius: "50%",
-                }}
-              />
-            ))}
-        </GoogleMapReact>
-      </div>
-    </div>
-  );
-};
-
-export default MapWithWalkingDirections;

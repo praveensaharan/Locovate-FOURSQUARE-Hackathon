@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// Your JSON places
 const places = [
   {
     name: "Cafe Restaurant NAKAICHI",
@@ -31,6 +30,7 @@ export default function MapDirections() {
   const [map, setMap] = useState(null);
   const [directionsRenderer, setDirectionsRenderer] = useState(null);
   const [travelTime, setTravelTime] = useState(null);
+  const [walkingInfo, setWalkingInfo] = useState({});
   const markersRef = useRef([]);
 
   // Load Google Maps API
@@ -52,12 +52,14 @@ export default function MapDirections() {
   // Get user location
   useEffect(() => {
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        setCurrentPosition({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      });
+      navigator.geolocation.getCurrentPosition(
+        (position) =>
+          setCurrentPosition({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          }),
+        () => alert("Unable to retrieve your location")
+      );
     } else {
       alert("Geolocation is not supported by your browser.");
     }
@@ -82,22 +84,22 @@ export default function MapDirections() {
       renderer.setMap(gMap);
       setDirectionsRenderer(renderer);
 
-      // User location marker
+      // Marker for user location
       new window.google.maps.Marker({
         map: gMap,
         position: currentPosition,
-        title: "Your Location",
+        title: "Me",
         icon: {
           path: window.google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#007bff",
+          scale: 10,
+          fillColor: "#3b82f6", // Tailwind blue-500
           fillOpacity: 1,
           strokeWeight: 2,
           strokeColor: "#fff",
         },
       });
 
-      // Place markers
+      // Markers for places
       markersRef.current = [];
       places.forEach((place) => {
         const marker = new window.google.maps.Marker({
@@ -111,7 +113,7 @@ export default function MapDirections() {
     }
   }, [mapLoaded, currentPosition]);
 
-  // Render directions and travel time
+  // Render driving directions and travel time on click selection
   useEffect(() => {
     if (selectedPlace && directionsRenderer && currentPosition) {
       const directionsService = new window.google.maps.DirectionsService();
@@ -137,38 +139,79 @@ export default function MapDirections() {
     }
   }, [selectedPlace, directionsRenderer, currentPosition]);
 
+  // Prefetch walking info for hover display
+  useEffect(() => {
+    if (currentPosition && map && window.google && window.google.maps) {
+      const directionsService = new window.google.maps.DirectionsService();
+      places.forEach((place) => {
+        directionsService.route(
+          {
+            origin: currentPosition,
+            destination: { lat: place.latitude, lng: place.longitude },
+            travelMode: window.google.maps.TravelMode.WALKING,
+          },
+          (result, status) => {
+            if (status === "OK") {
+              const leg = result.routes[0].legs[0];
+              setWalkingInfo((prev) => ({
+                ...prev,
+                [place.name]: {
+                  duration: leg.duration.text,
+                  distance: leg.distance.text,
+                },
+              }));
+            }
+          }
+        );
+      });
+    }
+  }, [currentPosition, map]);
+
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div className="flex h-screen">
       {/* Sidebar */}
-      <div
-        style={{
-          width: "300px",
-          overflowY: "auto",
-          padding: "10px",
-          borderRight: "1px solid #ccc",
-        }}
-      >
-        <h3>Places</h3>
+      <aside className="w-80 p-4 border-r border-gray-300 overflow-auto bg-gray-50">
+
+       
+
+        {/* Places cards */}
         {places.map((place) => (
           <div
             key={place.name}
-            style={{
-              padding: "10px",
-              cursor: "pointer",
-              borderBottom: "1px solid #eee",
-            }}
+            className={`group relative mb-4 p-3 rounded-lg cursor-pointer shadow-sm ring-1 transition-colors ${
+              selectedPlace?.name === place.name
+                ? "ring-blue-600 bg-blue-100"
+                : "ring-gray-300 bg-white hover:bg-blue-50"
+            }`}
             onClick={() => setSelectedPlace(place)}
+            tabIndex={0}
+            aria-label={`Select place ${place.name}`}
           >
-            <strong>{place.name}</strong>
-            <p>{place.formatted_address}</p>
+            <h4 className="text-gray-900 font-medium">{place.name}</h4>
+            <p className="text-gray-600 text-sm">{place.formatted_address}</p>
             {selectedPlace?.name === place.name && travelTime && (
-              <p style={{ color: "green" }}>Estimated Time: {travelTime}</p>
+              <p className="mt-1 font-semibold text-green-600">
+                Estimated Drive Time: {travelTime}
+              </p>
             )}
+
+            {/* Hover info box */}
+            <div className="pointer-events-none absolute left-full top-1/2 z-20 ml-3 w-52 -translate-y-1/2 rounded border border-gray-300 bg-white p-3 shadow-lg opacity-0 transition-opacity group-hover:opacity-100">
+              <p className="font-semibold text-sm mb-1">{place.formatted_address}</p>
+              {walkingInfo[place.name] ? (
+                <p className="text-green-700 text-sm">
+                  Walk: {walkingInfo[place.name].duration} ({walkingInfo[place.name].distance})
+                </p>
+              ) : (
+                <p className="text-gray-500 text-sm italic">Loading walk info...</p>
+              )}
+            </div>
           </div>
         ))}
-      </div>
+      </aside>
+
       {/* Map */}
-      <div id="map" style={{ flex: 1 }}></div>
+      <main id="map" className="h-1/2 w-1/2" />
     </div>
   );
 }
