@@ -1,4 +1,4 @@
-# Around Me AI <img src="public/PNG-favicon.png" alt="logo" width="20" height="20" />
+# Around Me AI <img src="public/PNG-favicon.png" alt="logo" width="40" height="40" />
 
 **Personalized Place Recommendations using Geospatial AI, Mood, and Weather**
 
