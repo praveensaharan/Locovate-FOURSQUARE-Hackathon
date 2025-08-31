@@ -5,6 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import { fetchActivitiesFromAI, fetchPlacesNearby } from "../services/api";
 import AudioOrMoodChooser from "./Form1";
 import MapComponent from "./maps2";
+import PlaceSelected from "./PlaceSelected";
 
 // Step 1: Intro after mood chosen
 function ActivityIntro({ loading, weatherLoading, onStart, mood }) {
@@ -40,7 +41,6 @@ function ActivityList({ activities, keywords, loading, onSelect, reasoning }) {
       <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
         Choose an activity:
       </h2>
-      {/* <p className="text-2xl font-semibold text-white mb-4 drop-shadow-md">{reasoning}</p> */}
      {reasoning && (
         <motion.p
           initial={{ opacity: 0 }}
@@ -73,7 +73,7 @@ function ActivityList({ activities, keywords, loading, onSelect, reasoning }) {
 }
 
 // Step 3: Nearby places list
-function PlacesList({ selected, places, loading }) {
+function PlacesList({ selected, places, loading, onPlaceClick }) {
   return (
     <div>
       <h2 className="text-2xl font-semibold text-white mb-4 drop-shadow-md">
@@ -90,7 +90,8 @@ function PlacesList({ selected, places, loading }) {
             places.map((place) => (
               <li
                 key={place.fsq_place_id}
-                className="p-3 rounded-xl bg-[#0F0F35]/70 backdrop-blur border border-[#4A4CFF]/30 text-gray-200 flex items-start space-x-3 hover:shadow-[0_0_10px_rgba(74,76,255,0.4)]"
+                className="cursor-pointer p-3 rounded-xl bg-[#0F0F35]/70 backdrop-blur border border-[#4A4CFF]/30 text-gray-200 flex items-start space-x-3 hover:shadow-[0_0_10px_rgba(74,76,255,0.4)]"
+                onClick={() => onPlaceClick(place)}
               >
                 <MapPin className="w-5 h-5 text-[#4A4CFF] mt-1" />
                 <div>
@@ -98,21 +99,19 @@ function PlacesList({ selected, places, loading }) {
                   <p className="text-sm text-[#B9B9FF]">
                     {place.location?.formatted_address || "No address available"}
                   </p>
-                  <p className="text-xs text-gray-500">{(place.distance / 1000).toFixed(2)} km</p>
-                  <p className="text-xs text-gray-500">{place.website}</p>
-                  <p className="text-xs text-gray-500">{place.categories?.map((c) => c.short_name).join(", ")}</p>
+              
                 </div>
               </li>
             ))
           ) : (
             <p className="text-[#B9B9FF]">No places found.</p>
           )}
-           <MapComponent places={places} />
         </ul>
       )}
     </div>
   );
 }
+
 
 export default function ActivityFinder() {
   const { weather, loading: weatherLoading, coords } = useAppContext();
@@ -125,6 +124,7 @@ export default function ActivityFinder() {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [reasoning, setReasoning] = useState("");
+  const [selectedPlace, setSelectedPlace] = useState(null);
 
   // Reset flow
   const handleReset = () => {
@@ -136,6 +136,12 @@ export default function ActivityFinder() {
     setPlaces([]);
     setLoading(false);
     setReasoning("");
+    setSelectedPlace(null);
+  };
+
+    const handlePlaceClick = (place) => {
+    setSelectedPlace(place);
+    setStep(4);
   };
 
   // Step transitions
@@ -191,7 +197,11 @@ export default function ActivityFinder() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0B0B2B] via-[#0F0F35] to-[#0B0B2B] p-6 flex flex-col items-center justify-center">
+    <div>
+       {places?.length > 0 && (
+        <MapComponent places={places} selectedPlace={selectedPlace} />
+        )}
+    <div className="bg-gradient-to-b from-[#0B0B2B] via-[#0F0F35] to-[#0B0B2B] p-6 flex flex-col items-center justify-center">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -222,22 +232,34 @@ export default function ActivityFinder() {
               onSelect={handleFetchPlaces}
             />
           )}
-          {step === 3 && (
-            <PlacesList selected={selected} places={places} loading={loading} />
-          )}
+            {step === 3 && (
+              <PlacesList
+                selected={selected}
+                places={places}
+                loading={loading}
+                onPlaceClick={handlePlaceClick} 
+              />
+            )}
+
+            {step === 4 && (
+              <PlaceSelected place={selectedPlace} />
+            )}
 
           {step > 0 && (
-            <div className="pt-4 flex justify-center">
-              <button
-                onClick={handleReset}
-                className="px-4 py-2 rounded-lg border border-[#4A4CFF]/40 text-gray-200 hover:bg-[#4A4CFF]/20 hover:shadow-[0_0_10px_rgba(74,76,255,0.5)] transition"
-              >
-                Reset & Start Over
-              </button>
-            </div>
+       <div className="pt-4 flex justify-center">
+        <button
+          onClick={handleReset}
+          className="px-4 py-2 rounded-lg border border-red-400/40 text-red-200 bg-red-500/20 hover:bg-red-900 hover:shadow-[0_0_10px_rgba(239,68,68,0.5)] transition"
+        >
+          Reset & Start Over
+        </button>
+      </div>
+
           )}
         </div>
       </motion.div>
+      </div>
+     
     </div>
   );
 }
