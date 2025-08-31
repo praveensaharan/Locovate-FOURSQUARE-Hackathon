@@ -1,4 +1,4 @@
-# Around Me AI ![alt text](public/PNG-favicon.png)
+# Around Me AI <img src="public/PNG-favicon.png" alt="logo" width="20" height="20" />
 
 **Personalized Place Recommendations using Geospatial AI, Mood, and Weather**
 
@@ -73,7 +73,7 @@ Open your browser and go to `http://localhost:5173` to see the app in action.
 
 ---
 
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - [OpenAI](https://openai.com/) for the amazing GPT-3.5 API.
 - [WeatherAPI](https://www.weatherapi.com/) for reliable weather data.
