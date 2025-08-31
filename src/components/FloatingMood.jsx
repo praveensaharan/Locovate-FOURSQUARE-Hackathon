@@ -14,17 +14,16 @@ function randomSign() {
 }
 
 export default function FloatingMoods({ onMoodSelect }) {
-  // Generate random positions & animation configs once per mount
   const moodsWithProps = useMemo(() => 
     predefinedMoods.map(mood => ({
       mood,
-      top: Math.random() * 75 + 5,              // 5% to 80% vertical range
-      left: Math.random() * 90 + 5,             // 5% to 95% horizontal range
-      duration: 3 + Math.random() * 7,          // 3s to 10s duration
-      delay: Math.random() * 4,                  // up to 4s delay
-      xMove: (5 + Math.random() * 20) * randomSign(),  // ±5 to 25px horizontal drift
-      yMove: (5 + Math.random() * 25) * randomSign(),  // ±5 to 30px vertical drift
-      rotate: (Math.random() * 15) * randomSign(),     // ±0 to 15 degrees rotation
+      top: Math.random() * 75 + 5,       
+      left: Math.random() * 90 + 5,         
+      duration: 3 + Math.random() * 7,       
+      delay: Math.random() * 4,                 
+      xMove: (5 + Math.random() * 20) * randomSign(), 
+      yMove: (5 + Math.random() * 25) * randomSign(),  
+      rotate: (Math.random() * 15) * randomSign(),    
     })), []
   );
 
